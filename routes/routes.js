@@ -1,16 +1,15 @@
-// Require Dependencies
 const fs = require('fs');
 const path = require('path');
 
 module.exports = app => {
-
+    var notes;
     // Setup notes variable
     fs.readFile("db/db.json","utf8", (err, data) => {
 
         if (err) throw err;
 
-        var notes = JSON.parse(data);
-
+         notes = JSON.parse(data);
+     })
         // API ROUTES
     
         // Setup the /public/notes.html get route
@@ -61,6 +60,6 @@ module.exports = app => {
             });
         }
 
-    });
+    
 
 }
