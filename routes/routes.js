@@ -28,13 +28,13 @@ module.exports = app => {
         });
 
         // Retrieves a note with specific id
-        app.get("/api/notes:id", function(req,res) {
+        app.get("/api/notes/:id", function(req,res) {
             // display json for the notes array indices of the provided id
             res.json(notes[req.params.id]);
         });
 
         // Deletes a note with specific id
-        app.delete("/api/notes:id", function(req, res) {
+        app.delete("/api/notes/:id", function(req, res) {
             notes.splice(req.params.id, 1);
             updateDb();
             console.log("Deleted note with id "+req.params.id);
