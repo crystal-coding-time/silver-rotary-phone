@@ -36,6 +36,7 @@ module.exports = app => {
         // Deletes a note with specific id
         app.delete("/api/notes/:id", function(req, res) {
             notes.splice(req.params.id, 1);
+            res.json(notes);
             updateDb();
             console.log("Deleted note with id "+req.params.id);
         });
