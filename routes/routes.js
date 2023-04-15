@@ -1,66 +1,65 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
-module.exports = app => {
-    var notes;
-    // Setup notes variable
-    fs.readFile("db/db.json","utf8", (err, data) => {
+module.exports = async app => {
+  // Setup notes variable
+  let notes;
+  try {
+    const data = await fs.readFile('db/db.json', 'utf-8');
+    notes = JSON.parse(data);
+  } catch (err) {
+    console.error(err);
+    process.exit(1); // Exit the process if an error occurs
+  }
 
-        if (err) throw err;
+  // API ROUTES
 
-         notes = JSON.parse(data);
-     })
-        // API ROUTES
-    
-        // Setup the /public/notes.html get route
-        app.get("/api/notes", function(req, res) {
-            // Read the db.json file and return all saved notes as JSON.
-            res.json(notes);
-        });
+  // Setup the /api/notes get route
+  app.get('/api/notes', function (req, res) {
+    res.json(notes);
+  });
 
-        // Setup the /api/notes post route
-        app.post("/api/notes", function(req, res) {
-            // Receives a new note, adds it to db.json, then returns the new note
-            let newNote = req.body;
-            notes.push(newNote);
-            updateDb();
-            return console.log("Added new note: "+newNote.title);
-        });
+  // Setup the /api/notes post route
+  app.post('/api/notes', async function (req, res) {
+    // Receives a new note, adds it to db.json, then returns the new note
+    const newNote = req.body;
+    notes.push(newNote);
+    await updateDb();
+    return res.status(201).json({ message: 'Note added successfully' });
+  });
 
-        // Retrieves a note with specific id
-        app.get("/api/notes/:id", function(req,res) {
-            // display json for the notes array indices of the provided id
-            res.json(notes[req.params.id]);
-        });
+  // Retrieves a note with specific id
+  app.get('/api/notes/:id', function (req, res) {
+    res.json(notes[req.params.id]);
+  });
 
-        // Deletes a note with specific id
-        app.delete("/api/notes/:id", function(req, res) {
-            notes.splice(req.params.id, 1);
-            res.json(notes);
-            updateDb();
-            console.log("Deleted note with id "+req.params.id);
-        });
+  // Deletes a note with specific id
+  app.delete('/api/notes/:id', async function (req, res) {
+    notes.splice(req.params.id, 1);
+    await updateDb();
+    return res.json({ message: 'Note deleted successfully' });
+  });
 
-        // View Routes
+  // View Routes
 
-        // Display notes.html when /notes is accessed
-        app.get('/notes', function(req,res) {
-            res.sendFile(path.join(__dirname, "../public/notes.html"));
-        });
-        
-        // This displays the index.html when all other routes are accessed
-        app.get('*', function(req,res) {
-            res.sendFile(path.join(__dirname, "../public/index.html"));
-        });
+  // Display notes.html when /notes is accessed
+  app.get('/notes', function (req, res) {
+    res.sendFile(path.join(__dirname, '../public/notes.html'));
+  });
 
-        //This updates the JASOn file whenever a note is added or deleted
-        function updateDb() {
-            fs.writeFile("db/db.json",JSON.stringify(notes,'\t'),err => {
-                if (err) throw err;
-                return true;
-            });
-        }
+  // This displays the index.html when all other routes are accessed
+  app.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  });
 
-    
-
-}
+  // This updates the JSON file whenever a note is added or deleted
+  async function updateDb() {
+    try {
+      await fs.writeFile('db/db.json', JSON.stringify(notes, null, 2));
+      console.log('Database updated successfully');
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+};
